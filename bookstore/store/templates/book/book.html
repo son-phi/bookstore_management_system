@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Books{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h3 class="m-0">Books</h3>
+  <form class="d-flex" method="get" action="/books/">
+    <input class="form-control me-2" name="q" value="{{ q }}" placeholder="Search title / isbn / author">
+    <button class="btn btn-outline-dark">Search</button>
+    {% if q %}<a class="btn btn-link" href="/books/">Clear</a>{% endif %}
+  </form>
+</div>
+
+<table class="table table-striped bg-white">
+  <thead>
+    <tr>
+      <th>Title</th><th>ISBN</th><th class="text-end">Price</th><th class="text-end">Stock</th><th class="text-end">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in books %}
+    <tr>
+      <td>{{ b.title }}</td>
+      <td>{{ b.isbn }}</td>
+      <td class="text-end">{{ b.price }}</td>
+      <td class="text-end">{{ b.stock }}</td>
+      <td class="text-end">
+        <a class="btn btn-sm btn-outline-secondary" href="/books/{{ b.bookID }}/">View</a>
+        <form method="post" action="/cart/add/{{ b.bookID }}/" class="d-inline">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-primary" {% if b.stock <= 0 %}disabled{% endif %}>Add</button>
+        </form>
+        <form method="post" action="/wishlist/add/{{ b.bookID }}/" class="d-inline">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-dark">Wish</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="text-center text-muted">No books</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

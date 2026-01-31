@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Cart{% endblock %}
+{% block content %}
+<h3>Your Cart</h3>
+
+<table class="table bg-white">
+  <thead>
+    <tr>
+      <th>Book</th><th class="text-end">Price</th><th class="text-center">Qty</th><th class="text-end">Line</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for it in items %}
+    <tr>
+      <td>{{ it.bookID.title }}</td>
+      <td class="text-end">{{ it.bookID.price }}</td>
+      <td class="text-center">
+        <div class="d-flex justify-content-center align-items-center gap-1">
+          <form method="post" action="/cart/dec/{{ it.itemID }}/">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">-</button></form>
+          <form method="post" action="/cart/set/{{ it.itemID }}/" class="d-flex gap-1">
+            {% csrf_token %}
+            <input class="form-control form-control-sm" style="width:70px" name="quantity" value="{{ it.quantity }}">
+            <button class="btn btn-sm btn-outline-dark">Set</button>
+          </form>
+          <form method="post" action="/cart/inc/{{ it.itemID }}/">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">+</button></form>
+        </div>
+      </td>
+      <td class="text-end">{{ it.bookID.price|floatformat:2 }}</td>
+      <td class="text-end">
+        <form method="post" action="/cart/remove/{{ it.itemID }}/">{% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger">Remove</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="text-center text-muted">Cart is empty</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="d-flex justify-content-between">
+  <div><b>Total:</b> {{ total }}</div>
+  <a class="btn btn-success {% if not items %}disabled{% endif %}" href="/checkout/">Checkout</a>
+</div>
+{% endblock %}

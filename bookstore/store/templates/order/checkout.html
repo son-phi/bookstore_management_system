@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<h3>Checkout</h3>
+
+<form method="post" class="bg-white p-3 rounded">
+  {% csrf_token %}
+
+  <div class="mb-3">
+    <label class="form-label">Payment Method</label>
+    <select class="form-select" name="method">
+      <option value="COD">COD (Pay on delivery)</option>
+      <option value="ONLINE">ONLINE (Mock gateway)</option>
+      {% if methods %}
+        {% for m in methods %}
+          <option value="{{ m.name }}">{{ m.name }}</option>
+        {% endfor %}
+      {% endif %}
+    </select>
+    <div class="text-muted small mt-1">
+      ONLINE sẽ chuyển sang trang thanh toán mô phỏng để confirm.
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Note</label>
+    <textarea class="form-control" name="note" rows="2"></textarea>
+  </div>
+
+  <button class="btn btn-primary">Place order</button>
+</form>
+
+<hr>
+<h5>Items</h5>
+<ul>
+  {% for it in items %}
+    <li>{{ it.bookID.title }} x {{ it.quantity }}</li>
+  {% endfor %}
+</ul>
+<p><b>Total:</b> {{ total }}</p>
+{% endblock %}

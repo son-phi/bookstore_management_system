@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Create Slip{% endblock %}
+{% block content %}
+<h3>Create Import Slip</h3>
+<form method="post" class="bg-white p-3 rounded">
+  {% csrf_token %}
+  <div class="mb-2">
+    <label class="form-label">Warehouse</label>
+    <select class="form-select" name="warehouse_id">
+      <option value="">-- Select --</option>
+      {% for w in warehouses %}
+        <option value="{{ w.warehouseID }}">{{ w.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Supplier</label>
+    <select class="form-select" name="supplier_id">
+      <option value="">-- Select --</option>
+      {% for s in suppliers %}
+        <option value="{{ s.supplierID }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-primary">Create</button>
+</form>
+{% endblock %}

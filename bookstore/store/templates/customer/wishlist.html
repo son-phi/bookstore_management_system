@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Wishlist{% endblock %}
+{% block content %}
+<h3>Wishlist</h3>
+
+{% if not wishlist %}
+<p class="text-muted">No wishlist yet. Add books from Books page.</p>
+{% endif %}
+
+<table class="table bg-white">
+  <thead><tr><th>Book</th><th></th></tr></thead>
+  <tbody>
+    {% for it in items %}
+    <tr>
+      <td>{{ it.bookID.title }}</td>
+      <td class="text-end">
+        <a class="btn btn-sm btn-outline-secondary" href="/books/{{ it.bookID.bookID }}/">View</a>
+        <form method="post" action="/wishlist/remove/{{ it.itemID }}/" class="d-inline">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="2" class="text-center text-muted">No items</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

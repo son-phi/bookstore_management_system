@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Slip Detail{% endblock %}
+{% block content %}
+<h3>Slip #{{ slip.slipID }}</h3>
+<div class="text-muted">Warehouse: {{ slip.warehouseID.name }} | Supplier: {{ slip.supplierID.name }}</div>
+<div class="mt-2">
+  <b>TotalCost:</b> {{ slip.totalCost }} | 
+  <b>Status:</b> 
+  {% if slip.status == 'COMPLETED' %}
+    <span class="badge bg-success">Completed</span>
+  {% else %}
+    <span class="badge bg-warning text-dark">Pending</span>
+  {% endif %}
+</div>
+
+{% if slip.status != 'COMPLETED' %}
+<hr>
+<h5>Add Item</h5>
+<form method="post" action="/staff/slips/{{ slip.slipID }}/details/add/" class="bg-white p-3 rounded">
+  {% csrf_token %}
+  <div class="row g-2">
+    <div class="col-md-6">
+      <select class="form-select" name="book_id">
+        <option value="">-- Select book --</option>
+        {% for b in books %}
+          <option value="{{ b.bookID }}">{{ b.title }} (stock: {{ b.stock }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2"><input class="form-control" name="quantity" value="1" placeholder="Qty"></div>
+    <div class="col-md-2"><input class="form-control" name="costPrice" value="0" placeholder="Cost"></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Add</button></div>
+  </div>
+</form>
+{% endif %}
+
+<hr>
+<h5>Details</h5>
+<table class="table bg-white">
+  <thead><tr><th>Book</th><th class="text-end">Qty</th><th class="text-end">CostPrice</th><th></th></tr></thead>
+  <tbody>
+    {% for d in details %}
+    <tr>
+      <td>{{ d.bookID.title }}</td>
+      <td class="text-end">{{ d.quantity }}</td>
+      <td class="text-end">{{ d.costPrice }}</td>
+      <td class="text-end">
+        {% if slip.status != 'COMPLETED' %}
+        <form method="post" action="/staff/slips/{{ slip.slipID }}/details/{{ d.id }}/remove/">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger">Remove</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+      <tr><td colspan="4" class="text-muted text-center">No details</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if slip.status != 'COMPLETED' and details %}
+<form method="post" action="/staff/slips/{{ slip.slipID }}/approve/">
+  {% csrf_token %}
+  <button class="btn btn-success">Approve Slip (Import to Stock)</button>
+</form>
+{% endif %}
+{% endblock %}

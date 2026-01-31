@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Order{% endblock %}
+{% block content %}
+<h3>Order #{{ order.orderID }}</h3>
+<div><b>Total:</b> {{ order.totalAmount }} | <b>Shipping:</b> {{ order.shippingFee }}</div>
+<div class="mt-2"><b>Note:</b> {{ order.note }}</div>
+
+{% if payment %}
+  <div class="mt-2">
+    <b>Payment:</b>
+    <span class="badge bg-dark">{{ payment.status }}</span>
+    <a class="btn btn-sm btn-outline-secondary" href="/payments/{{ payment.paymentID }}/">View payment</a>
+  </div>
+{% else %}
+  <div class="mt-2 text-muted">No payment created</div>
+{% endif %}
+
+{% if shipment %}
+  <hr>
+  <h5>Shipment</h5>
+  <div><b>Tracking:</b> {{ shipment.trackingCode }}</div>
+  <div><b>Status:</b> <span class="badge bg-secondary">{{ shipment.status }}</span></div>
+
+  <div class="mt-2">
+    <b>Tracking logs</b>
+    <ul class="mt-2">
+      {% for t in traces %}
+        <li>{{ t.time }} - {{ t.location }} - {{ t.status }}</li>
+      {% empty %}
+        <li class="text-muted">No tracking logs</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+<table class="table bg-white mt-3">
+  <thead><tr><th>Book</th><th class="text-end">Price</th><th class="text-end">Qty</th></tr></thead>
+  <tbody>
+    {% for d in details %}
+    <tr>
+      <td>{{ d.bookID.title }}</td>
+      <td class="text-end">{{ d.price }}</td>
+      <td class="text-end">{{ d.quantity }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
