@@ -188,9 +188,55 @@ class Command(BaseCommand):
                 defaults={"isThumbnail": False},
             )
             created_images += int(created1) + int(created2)
-        # 8) Addresses
-        from store.models import City, District, Address, User
+        # 8) Staff User & Role
+        from store.models import City, District, Address, User, Role, UserRole, StaffProfile
+        # from django.contrib.auth.hashers import make_password # Custom auth uses plain text
+        from django.utils import timezone
+
+        self.stdout.write("Seeding Staff User...")
         
+        # Create 'Staff' role
+        staff_role, _ = Role.objects.get_or_create(
+            name="Staff",
+            defaults={"description": "Employee with access to warehouse and order management."}
+        )
+
+        # Create 'staff' user
+        staff_user, created = User.objects.get_or_create(
+            username="staff",
+            defaults={
+                "email": "staff@bookstore.com",
+                "phone": "0909000001",
+                "password": "1234", # stored as plain text per auth_controller
+                "isActive": True,
+                "lastLogin": timezone.now()
+            }
+        )
+        if created:
+            self.stdout.write(self.style.SUCCESS(f"Created user: {staff_user.username}"))
+        else:
+            # Update password if user already exists to ensure it matches requirement
+            staff_user.password = "1234"
+            staff_user.save()
+            self.stdout.write(f"Updated user: {staff_user.username}")
+
+        # Assign Role
+        UserRole.objects.get_or_create(
+            userID=staff_user,
+            roleID=staff_role,
+            defaults={"assignedDate": timezone.now()}
+        )
+
+        # Create Staff Profile
+        StaffProfile.objects.get_or_create(
+            userID=staff_user,
+            defaults={
+                "employeeCode": "EMP001",
+                "department": "Warehouse"
+            }
+        )
+
+        # 9) Addresses
         self.stdout.write("Seeding Addresses...")
         hcm, _ = City.objects.get_or_create(name="Ho Chi Minh City", defaults={"code": "HCM"})
         hn, _ = City.objects.get_or_create(name="Ha Noi", defaults={"code": "HN"})
@@ -199,6 +245,7 @@ class Command(BaseCommand):
         districts_hcm = ["District 1", "District 3", "District 7", "Tan Binh", "Phu Nhuan"]
         hcm_objs = [District.objects.get_or_create(cityID=hcm, name=d)[0] for d in districts_hcm]
 
+        # Districts
         districts_hn = ["Ba Dinh", "Hoan Kiem", "Cau Giay", "Dong Da"]
         hn_objs = [District.objects.get_or_create(cityID=hn, name=d)[0] for d in districts_hn]
 

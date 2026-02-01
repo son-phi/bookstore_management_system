@@ -199,3 +199,26 @@ def slip_approve(request, slip_id: int):
         slip.save(update_fields=["totalCost", "staffID", "status"])
 
     return redirect(f"/staff/slips/{slip_id}/")
+
+
+# ===== Stock Check =====
+@staff_login_required
+def stock_check(request):
+    """
+    View current stock entries in all warehouses
+    """
+    # Optional: Filter by warehouse
+    warehouse_id = request.GET.get("warehouse", "").strip()
+    
+    entries = StockEntry.objects.select_related("warehouseID", "bookID").order_by("warehouseID", "bookID__title")
+    
+    if warehouse_id:
+        entries = entries.filter(warehouseID_id=warehouse_id)
+        
+    warehouses = Warehouse.objects.all().order_by("name")
+    
+    return render(request, "staff/stock_check.html", {
+        "entries": entries,
+        "warehouses": warehouses,
+        "selected_wh": int(warehouse_id) if warehouse_id.isdigit() else None
+    })

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{% if book %}Edit Book{% else %}Add Book{% endif %}{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0">{% if book %}Edit Book: {{ book.title }}{% else %}Add New Book{% endif %}</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ book.title|default:'' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="isbn" class="form-label">ISBN</label>
+                        <input type="text" class="form-control" id="isbn" name="isbn" value="{{ book.isbn|default:'' }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="price" class="form-label">Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ book.price|default:'' }}">
+                            </div>
+                        </div>
+                        {% if not book %}
+                        <div class="col-md-6 mb-3">
+                            <label for="stock" class="form-label">Initial Stock</label>
+                            <input type="number" class="form-control" id="stock" name="stock" value="{{ book.stock|default:'0' }}">
+                        </div>
+                        {% else %}
+                        <div class="col-md-6 mb-3">
+                             <label class="form-label">Current Stock</label>
+                             <input type="text" class="form-control" value="{{ book.stock }}" disabled readonly>
+                             <div class="form-text">Stock is managed via Import Slips.</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category_id">
+                            <option value="">-- Select Category --</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.categoryID }}" {% if book.categoryID_id == cat.categoryID %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="5">{{ book.description|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/staff/books/" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
