@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Shipment Management{% endblock %}
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h2>Shipment Management</h2>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="q" class="form-control" placeholder="Search Tracking Code..." value="{{ q }}">
+      </div>
+      <div class="col-md-3">
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>PENDING</option>
+          <option value="SHIPPING" {% if selected_status == 'SHIPPING' %}selected{% endif %}>SHIPPING</option>
+          <option value="DELIVERED" {% if selected_status == 'DELIVERED' %}selected{% endif %}>DELIVERED</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Order</th>
+        <th>Tracking Code</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in shipments %}
+      <tr>
+        <td>{{ s.shipmentID }}</td>
+        <td><a href="/orders/{{ s.orderID.orderID }}/">#{{ s.orderID.orderID }}</a> ({{ s.orderID.userID.username }})</td>
+        <td><span class="font-monospace">{{ s.trackingCode }}</span></td>
+        <td>
+            <span class="badge bg-secondary">{{ s.status }}</span>
+        </td>
+        <td>
+           <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{ s.shipmentID }}">Update</button>
+        </td>
+      </tr>
+
+      <!-- Modal -->
+      <div class="modal fade" id="modal{{ s.shipmentID }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Update Shipment #{{ s.shipmentID }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form method="post" action="/staff/shipments/{{ s.shipmentID }}/status/">
+                {% csrf_token %}
+                <h6>Update Status</h6>
+                <div class="input-group mb-3">
+                    <select name="status" class="form-select">
+                        <option value="PENDING">PENDING</option>
+                        <option value="Picked Up">Picked Up</option>
+                        <option value="SHIPPING">SHIPPING</option>
+                        <option value="DELIVERED">DELIVERED</option>
+                    </select>
+                    <button class="btn btn-primary">Save</button>
+                </div>
+              </form>
+              <hr>
+              <form method="post" action="/staff/shipments/{{ s.shipmentID }}/trace/">
+                {% csrf_token %}
+                <h6>Add Trace Log</h6>
+                <div class="mb-2">
+                    <input type="text" name="location" class="form-control" placeholder="Location (e.g. Hanoi Hub)" required>
+                </div>
+                <div class="mb-2">
+                    <input type="text" name="status" class="form-control" placeholder="Status (e.g. Arrived at facility)" required>
+                </div>
+                <button class="btn btn-dark btn-sm w-100">Add Trace</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% empty %}
+      <tr><td colspan="5" class="text-center py-4">No shipments found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

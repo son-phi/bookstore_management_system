@@ -271,3 +271,41 @@ class Command(BaseCommand):
         self.stdout.write(f"- Books: {Book.objects.count()}")
         self.stdout.write(f"- Addresses: {Address.objects.count()}")
 
+        # 10) Carriers and Rates
+        from store.models import Carrier, ShippingRate
+        self.stdout.write("Seeding Carriers...")
+        
+        carriers_data = [
+            {"name": "Giao Hàng Nhanh (GHN)", "apiKey": "ghn_demo_key", "hotline": "19001234"},
+            {"name": "Giao Hàng Tiết Kiệm (GHTK)", "apiKey": "ghtk_demo_key", "hotline": "18005555"},
+            {"name": "Viettel Post", "apiKey": "vtp_demo_key", "hotline": "19008095"},
+        ]
+
+        for c_data in carriers_data:
+            carrier, created = Carrier.objects.get_or_create(
+                name=c_data["name"],
+                defaults={
+                    "apiKey": c_data["apiKey"],
+                    "hotline": c_data["hotline"]
+                }
+            )
+            
+            # Create Dummy Rates
+            zones = ["Inner City", "Outer City", "National"]
+            base_prices = {
+                "Giao Hàng Nhanh (GHN)": 30000,
+                "Giao Hàng Tiết Kiệm (GHTK)": 25000,
+                "Viettel Post": 35000
+            }
+            
+            price = base_prices.get(carrier.name, 30000)
+            
+            for zone in zones:
+                ShippingRate.objects.get_or_create(
+                    carrierID=carrier,
+                    zone=zone,
+                    minWeight=0.0,
+                    defaults={"price": price}
+                )
+        self.stdout.write(f"- Carriers: {Carrier.objects.count()}")
+

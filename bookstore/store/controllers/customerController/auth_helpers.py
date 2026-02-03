@@ -29,3 +29,20 @@ def customer_login_required(view_func):
         request.current_user = user
         return view_func(request, *args, **kwargs)
     return _wrapped
+
+def staff_required(view_func):
+    def _wrapped(request: HttpRequest, *args, **kwargs):
+        user = get_current_user(request)
+        if not user:
+            from django.shortcuts import redirect
+            return redirect("/login/")
+        
+        # check staff
+        from store.models import StaffProfile
+        if not StaffProfile.objects.filter(userID=user).exists():
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden("Access Denied: You are not staff.")
+
+        request.current_user = user
+        return view_func(request, *args, **kwargs)
+    return _wrapped

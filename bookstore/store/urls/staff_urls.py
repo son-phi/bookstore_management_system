@@ -9,6 +9,9 @@ from store.controllers.staffController.inventory_controller import (
 from store.controllers.staffController.staff_book_controller import (
     book_list, book_create, book_update, book_delete
 )
+from store.controllers.supportController.shipment_controller import (
+    shipment_manage, update_status, add_trace
+)
 
 urlpatterns = [
     # Books
@@ -32,4 +35,9 @@ urlpatterns = [
     path("staff/slips/<int:slip_id>/details/add/", slip_add_detail),
     path("staff/slips/<int:slip_id>/details/<int:detail_id>/remove/", slip_remove_detail),
     path("staff/slips/<int:slip_id>/approve/", slip_approve),
+
+    # Shipment Management
+    path("staff/shipments/", shipment_manage),
+    path("staff/shipments/<int:shipment_id>/status/", update_status),
+    path("staff/shipments/<int:shipment_id>/trace/", add_trace),
 ]

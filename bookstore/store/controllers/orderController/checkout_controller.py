@@ -9,24 +9,64 @@ def checkout(request):
     user = request.current_user
     cart = _get_or_create_cart(request)
     items = CartItem.objects.filter(cartID=cart).select_related("bookID")
+    from store.models import Carrier, ShippingRate
 
     if request.method == "GET":
-        total = 0
+        total_items_price = 0
         for it in items:
-            total += float(it.bookID.price) * it.quantity
-            methods = PaymentMethod.objects.filter(isActive=True).order_by("name")
-        return render(request, "order/checkout.html", {"items": items, "total": total, "methods": methods})
+            total_items_price += float(it.bookID.price) * it.quantity
+        
+        methods = PaymentMethod.objects.filter(isActive=True).order_by("name")
+        
+        # Calculate shipping options
+        # Assume "Inner City" for demo purposes, and weight 0.5 per item
+        total_weight = sum([0.5 * it.quantity for it in items])
+        carriers = Carrier.objects.all()
+        carrier_options = []
+        
+        for c in carriers:
+            # simple rate lookup
+            rate = ShippingRate.objects.filter(carrierID=c, zone="Inner City", minWeight__lte=total_weight).order_by("-minWeight").first()
+            fee = rate.price if rate else 30000
+            carrier_options.append({
+                "carrier": c,
+                "fee": fee,
+                "total_with_fee": total_items_price + float(fee)
+            })
+
+        return render(request, "order/checkout.html", {
+            "items": items, 
+            "total_items_price": total_items_price, 
+            "methods": methods,
+            "carrier_options": carrier_options
+        })
 
     # POST -> create order
     note = request.POST.get("note", "")
-    shipping_fee = 0  # you can change later
+    method = request.POST.get("method", "COD").strip().upper()
+    carrier_id = request.POST.get("carrier", "")
+    
     total_amount = 0
     for it in items:
         total_amount += float(it.bookID.price) * it.quantity
 
+    # Calculate shipping fee again for security
+    shipping_fee = 0
+    selected_carrier = None
+    if carrier_id:
+        try:
+            selected_carrier = Carrier.objects.get(carrierID=int(carrier_id))
+            total_weight = sum([0.5 * it.quantity for it in items])
+            rate = ShippingRate.objects.filter(carrierID=selected_carrier, zone="Inner City", minWeight__lte=total_weight).order_by("-minWeight").first()
+            shipping_fee = float(rate.price) if rate else 30000.0
+        except (ValueError, Carrier.DoesNotExist):
+            pass
+
+    final_total = total_amount + shipping_fee
+
     order = Order.objects.create(
         userID=user,
-        totalAmount=total_amount,
+        totalAmount=final_total,
         shippingFee=shipping_fee,
         note=note
     )
@@ -37,6 +77,16 @@ def checkout(request):
             bookID=it.bookID,
             price=it.bookID.price,
             quantity=it.quantity
+        )
+
+    # Create Shipment if carrier selected
+    if selected_carrier:
+        import uuid
+        tracking_code = f"{selected_carrier.name[:3].upper()}{uuid.uuid4().hex[:8].upper()}"
+        Shipment.objects.create(
+            orderID=order,
+            trackingCode=tracking_code,
+            status="PENDING"
         )
 
     # order history
@@ -50,8 +100,6 @@ def checkout(request):
 
     # clear cart
     items.delete()
-
-    method = request.POST.get("method", "COD").strip().upper()
 
     # create payment now (no need extra redirect)
     from store.models import Payment

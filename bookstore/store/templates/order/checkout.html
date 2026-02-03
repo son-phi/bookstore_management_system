@@ -23,6 +23,28 @@
   </div>
 
   <div class="mb-3">
+    <label class="form-label">Shipping Method</label>
+    {% if carrier_options %}
+      <div class="vstack gap-2 border p-2 rounded bg-light">
+          {% for opt in carrier_options %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="carrier" id="c_{{ opt.carrier.carrierID }}" value="{{ opt.carrier.carrierID }}" {% if forloop.first %}checked{% endif %} onchange="updateTotal({{ opt.total_with_fee }})">
+            <label class="form-check-label w-100" for="c_{{ opt.carrier.carrierID }}">
+              <div class="d-flex justify-content-between">
+                <span>{{ opt.carrier.name }}</span>
+                <b>{{ opt.fee }}</b>
+              </div>
+            </label>
+            <div class="small text-muted">{{ opt.carrier.hotline }}</div>
+          </div>
+          {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted text-center border p-2">No carriers available</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
     <label class="form-label">Note</label>
     <textarea class="form-control" name="note" rows="2"></textarea>
   </div>
@@ -37,5 +59,26 @@
     <li>{{ it.bookID.title }} x {{ it.quantity }}</li>
   {% endfor %}
 </ul>
-<p><b>Total:</b> {{ total }}</p>
+<p class="fs-4"><b>Total:</b> <span id="total-display">{{ total_items_price }}</span></p>
+
+<script>
+  function updateTotal(amount) {
+    document.getElementById("total-display").innerText = amount.toLocaleString();
+  }
+  // init
+  document.addEventListener("DOMContentLoaded", () => {
+     let radios = document.getElementsByName("carrier");
+     for(let r of radios) {
+        if(r.checked) {
+             // trigger change manually? or just rely on backend total pass
+             // Actually backend passed 'total' but we want dynamic update.
+             // But wait, the loop above initializes checked one.
+             // We can trigger click or just set it if we had the value.
+             // Simpler: Just rely on simple JS update. 
+             // We'll let the user click to see update, or auto-click first one.
+             r.onchange(); 
+        }
+     }
+  });
+</script>
 {% endblock %}
